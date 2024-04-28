@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload and Invert Colors</title>
+</head>
+
+<body>
+    <h1>After Image Generator</h1>
+    <input type="file" id="imageLoader" name="imageLoader" />
+    <h2>Original Image</h2>
+    <canvas id="imageCanvas"></canvas>
+    <h2>Inverted Image</h2>
+    <canvas id="invertedCanvas"></canvas>
+
+    <script>
+        var canvas = document.getElementById('imageCanvas');
+        var ctx = canvas.getContext('2d');
+
+        var invertedCanvas = document.getElementById('invertedCanvas');
+        var invertedCtx = invertedCanvas.getContext('2d');
+
+        function handleImage(e) {
+            var reader = new FileReader();
+            reader.onload = function (event) {
+                var img = new Image();
+                img.onload = function () {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+
+                    invertColors(img);
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        }
+
+        function invertColors(img) {
+            invertedCanvas.width = img.width;
+            invertedCanvas.height = img.height;
+
+            invertedCtx.drawImage(img, 0, 0);
+            var imageData = invertedCtx.getImageData(0, 0, img.width, img.height);
+            var data = imageData.data;
+
+            for (var i = 0; i < data.length; i += 4) {
+                // Invert each channel
+                data[i] = 255 - data[i];       // R
+                data[i + 1] = 255 - data[i + 1]; // G
+                data[i + 2] = 255 - data[i + 2]; // B
+                // Alpha channel remains unchanged (data[i + 3])
+            }
+
+            // Update the inverted canvas with the new image data
+            invertedCtx.putImageData(imageData, 0, 0);
+        }
+
+        var imageLoader = document.getElementById('imageLoader');
+        imageLoader.addEventListener('change', handleImage, false);
+    </script>
+</body>
+
+</html>
