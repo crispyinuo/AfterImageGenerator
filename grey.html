@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload and Process</title>
+</head>
+
+<body>
+    <h1>After Image Generator</h1>
+    <input type="file" id="imageLoader" name="imageLoader" />
+    <h2>Original Image</h2>
+    <canvas id="imageCanvas"></canvas>
+    <h2>Displayed Image</h2>
+    <canvas id="invertedCanvas"></canvas>
+    <button id="showGreyscale">Show Greyscale Image</button>
+
+    <script>
+        var canvas = document.getElementById('imageCanvas');
+        var ctx = canvas.getContext('2d');
+
+        var invertedCanvas = document.getElementById('invertedCanvas');
+        var invertedCtx = invertedCanvas.getContext('2d');
+
+        var maxDimension = 500; // Maximum width and height
+
+        function handleImage(e) {
+            var reader = new FileReader();
+            reader.onload = function (event) {
+                var img = new Image();
+                img.onload = function () {
+                    var scaleFactor = Math.min(maxDimension / img.width, maxDimension / img.height);
+                    var drawWidth = img.width * scaleFactor;
+                    var drawHeight = img.height * scaleFactor;
+
+                    canvas.width = drawWidth;
+                    canvas.height = drawHeight;
+                    invertedCanvas.width = drawWidth;
+                    invertedCanvas.height = drawHeight;
+
+                    ctx.drawImage(img, 0, 0, drawWidth, drawHeight);
+                    generateGrayscaleImage(img, drawWidth, drawHeight);
+                    generateInvertedImage(img, drawWidth, drawHeight);
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        }
+
+        function generateGrayscaleImage(img, width, height) {
+            var offscreenCanvas = document.createElement('canvas');
+            var offscreenCtx = offscreenCanvas.getContext('2d');
+            offscreenCanvas.width = width;
+            offscreenCanvas.height = height;
+            offscreenCtx.drawImage(img, 0, 0, width, height);
+            var imageData = offscreenCtx.getImageData(0, 0, width, height);
+            var data = imageData.data;
+
+            for (var i = 0; i < data.length; i += 4) {
+                var gray = 0.21 * data[i] + 0.72 * data[i + 1] + 0.07 * data[i + 2];
+                data[i] = data[i + 1] = data[i + 2] = gray;
+            }
+            grayscaleImageData = imageData;
+        }
+
+        function generateInvertedImage(img, width, height) {
+            invertedCtx.drawImage(img, 0, 0, width, height);
+            var imageData = invertedCtx.getImageData(0, 0, width, height);
+            var data = imageData.data;
+
+
+            // subtract greyscale from the original
+            for (var i = 0; i < data.length; i += 4) {
+                var gray = 0.21 * data[i] + 0.72 * data[i + 1] + 0.07 * data[i + 2];
+                data[i] = data[i] - gray;
+                data[i + 1] = data[i + 1] - gray;
+                data[i + 2] = data[i + 2] - gray;
+            }
+
+            for (var i = 0; i < data.length; i += 4) {
+                data[i] = 255 - data[i];
+                data[i + 1] = 255 - data[i + 1];
+                data[i + 2] = 255 - data[i + 2];
+            }
+
+            invertedCtx.putImageData(imageData, 0, 0);
+        }
+
+        var imageLoader = document.getElementById('imageLoader');
+        imageLoader.addEventListener('change', handleImage, false);
+
+        var showGreyscaleButton = document.getElementById('showGreyscale');
+        showGreyscaleButton.onclick = function () {
+            invertedCtx.putImageData(grayscaleImageData, 0, 0);
+        };
+    </script>
+</body>
+
+</html>
