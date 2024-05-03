@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import os
 
-input_video_path = 'car.mp4'
+input_video_path = 'rain.mp4'
 
 output_folder = 'output_videos'
 

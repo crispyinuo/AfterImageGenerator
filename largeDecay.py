@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import os
 
-input_video_path = 'yihong.mp4'
+input_video_path = 'nono.mp4'
 output_folder = 'output_videos'
 
 if not os.path.exists(output_folder):
@@ -32,7 +32,7 @@ prev_gray = cv2.cvtColor(prev_frame, cv2.COLOR_BGR2GRAY)
 accumulator = np.zeros_like(prev_frame, dtype=np.float32)
 
 alpha = 0.5  
-decay = 0.3  # Decay factor for the accumulator
+decay = 0.5  # Decay factor for the accumulator
 
 while True:
     ret, frame = cap.read()
@@ -45,7 +45,7 @@ while True:
 
     # Apply a custom decay to the accumulator to create a fading effect
     accumulator *= (1 - decay)
-    threshold_value = 120
+    threshold_value = 60
     _, motion_mask = cv2.threshold(flow, 50, 255, cv2.THRESH_BINARY)
     motion_mask_3ch = cv2.cvtColor(motion_mask, cv2.COLOR_GRAY2BGR)
     

@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import os
 
-input_video_path = 'yihong.mp4'
+input_video_path = 'nono.mp4'
 output_folder = 'output_videos'
 
 if not os.path.exists(output_folder):
@@ -20,7 +20,7 @@ frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = cap.get(cv2.CAP_PROP_FPS)
 
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-output_video_path = os.path.join(output_folder, f"{base_name}_output.mp4")
+output_video_path = os.path.join(output_folder, f"{base_name}_coloronly_output.mp4")
 out = cv2.VideoWriter(output_video_path, fourcc, fps, (frame_width, frame_height))
 
 ret, prev_frame = cap.read()
@@ -31,8 +31,7 @@ if not ret:
 prev_gray = cv2.cvtColor(prev_frame, cv2.COLOR_BGR2GRAY)
 accumulator = np.zeros_like(prev_frame, dtype=np.float32)
 
-alpha = 0.5  
-decay = 0.3  # Decay factor for the accumulator
+decay = 0.2  # Decay factor for the accumulator
 
 while True:
     ret, frame = cap.read()
@@ -43,15 +42,15 @@ while True:
     flow = cv2.absdiff(prev_gray, gray)
     prev_gray = gray
 
-    # Apply a custom decay to the accumulator to create a fading effect
     accumulator *= (1 - decay)
-    threshold_value = 120
-    _, motion_mask = cv2.threshold(flow, 50, 255, cv2.THRESH_BINARY)
+    threshold_value = 50
+    _, motion_mask = cv2.threshold(flow, threshold_value, 255, cv2.THRESH_BINARY)
     motion_mask_3ch = cv2.cvtColor(motion_mask, cv2.COLOR_GRAY2BGR)
     
     np.add(accumulator, frame, out=accumulator, where=(motion_mask_3ch == 255))
 
-    lagged_frame = cv2.convertScaleAbs(accumulator)
+    lagged_frame = np.zeros_like(frame)
+    lagged_frame[motion_mask_3ch == 255] = cv2.convertScaleAbs(accumulator)[motion_mask_3ch == 255]
 
     out.write(lagged_frame)
     cv2.imshow('Vision Lag Effect with Extended Trail', lagged_frame)
